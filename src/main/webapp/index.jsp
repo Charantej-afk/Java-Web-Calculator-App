@@ -19,18 +19,18 @@
 <br />
 </label>
 <label>
-<input type="radio" name="r2" value="sub" />subtraction 
+<input type="radio" name="r2" value="sub" />subraction
 <br />
 </label>
 <label>
-<input type="radio" name="r3" value="prod" />product
+<input type="radio" name="r3" value="prod" />production
 <br />
 </label>
 
 
 
 
- 
+
 </div>
 <input type="submit" value="submit" />
 </form>
