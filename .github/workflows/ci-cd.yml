@@ -72,7 +72,7 @@ jobs:
         echo "✅ WAR uploaded successfully to Nexus!"
 
     # --- Deploy WAR to Tomcat ---
-    - name: 🚀 Deploy WAR to Tomcat (Force Clean)
+    - name: 🚀 Deploy WAR to Tomcat
       env:
         TOMCAT_USER: ${{ secrets.TOMCAT_USER }}
         TOMCAT_PASS: ${{ secrets.TOMCAT_PASS }}
@@ -85,14 +85,14 @@ jobs:
 
         echo "🔍 Fetching latest WAR from Nexus (maven-releases)..."
         DOWNLOAD_URL=$(curl -s -u ${NEXUS_USER}:${NEXUS_PASS} \
-          "${{ env.NEXUS_URL }}/service/rest/v1/search/assets?repository=${{ env.NEXUS_REPO }}&group=${{ env.NEXUS_GROUP }}&name=${{ env.NEXUS_ARTIFACT }}" \
-          | grep -oP '"downloadUrl"\s*:\s*"[^"]*${{ env.NEXUS_ARTIFACT }}-[0-9.]+\.war' \
-          | tail -1 | cut -d'"' -f4)
+          "${{ env.NEXUS_URL }}/service/rest/v1/search/assets?repository=${{ env.NEXUS_REPO }}&group=${{ env.NEXUS_GROUP //\//. }}&name=${{ env.NEXUS_ARTIFACT }}" \
+          | jq -r '.items[-1].downloadUrl // empty')
 
+        # Fallback: Try direct path if Nexus search index is delayed
         if [ -z "$DOWNLOAD_URL" ]; then
-          echo "❌ No WAR found in Nexus repository ${{ env.NEXUS_REPO }}!"
-          echo "ℹ️ Please verify in Nexus UI → maven-releases/com/web/cal/webapp-add/"
-          exit 1
+          VERSION=${{ env.BUILD_VER }}
+          DOWNLOAD_URL="${{ env.NEXUS_URL }}/repository/${{ env.NEXUS_REPO }}/${{ env.NEXUS_GROUP }}/${{ env.NEXUS_ARTIFACT }}/${VERSION}/${{ env.NEXUS_ARTIFACT }}-${VERSION}.war"
+          echo "⚠️ Nexus search empty, using direct URL: $DOWNLOAD_URL"
         fi
 
         echo "⬇️ Downloading WAR: $DOWNLOAD_URL"
